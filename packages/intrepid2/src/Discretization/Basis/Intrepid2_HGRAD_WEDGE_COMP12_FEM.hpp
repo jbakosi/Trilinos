@@ -53,14 +53,16 @@
 
 namespace Intrepid2 {
 
-  /** \class  Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
-      \brief  Implementation of a H(grad)-compatible piecewise linear FEM basis on Wedge cell
+/** \class  Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
+    \brief  Implementation of a H(grad)-compatible piecewise linear FEM basis on
+   Wedge cell
 
-      Implements piecewise linear basis on the reference Wedge cell. The basis has
-      cardinality 12. Basis functions are dual
-      to a unisolvent set of degrees-of-freedom (DoF) defined and enumerated as follows:
+    Implements piecewise linear basis on the reference Wedge cell. The basis has
+    cardinality 12. Basis functions are dual
+    to a unisolvent set of degrees-of-freedom (DoF) defined and enumerated as
+   follows:
 
-      \verbatim
+    \verbatim
       =================================================================================================
       |         |           degree-of-freedom-tag table                    |                           |
       |   DoF   |----------------------------------------------------------|      DoF definition       |
@@ -78,6 +80,7 @@ namespace Intrepid2 {
       |---------|--------------|--------------|--------------|-------------|---------------------------|
       |    5    |       0      |       5      |       0      |      1      |   L_5(u) = u( 0, 1, 1)    |
       |---------|--------------|--------------|--------------|-------------|---------------------------|
+      |---------|--------------|--------------|--------------|-------------|---------------------------|
       |    6    |       1      |       0      |       0      |      1      |   L_6(u) = u(1/2, 0,-1)   |
       |---------|--------------|--------------|--------------|-------------|---------------------------|
       |    7    |       1      |       1      |       0      |      1      |   L_7(u) = u(1/2,1/2,-1)  |
@@ -90,175 +93,206 @@ namespace Intrepid2 {
       |---------|--------------|--------------|--------------|-------------|---------------------------|
       |   11    |       1      |       5      |       0      |      1      |   L_11(u)= u( 0,1/2, 1)   |
       |=========|==============|==============|==============|=============|===========================|
-      |   MAX   |  maxScDim=2  |  maxScOrd=8  |  maxDfOrd=0  |      -      |                           |
+      |   MAX   |  maxScDim=2  |  maxScOrd=6  |  maxDfOrd=0  |      -      |                           |
       |=========|==============|==============|==============|=============|===========================|
-      \endverbatim
+    \endverbatim
 
+*/
+
+namespace Impl {
+
+/**
+  \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
+*/
+class Basis_HGRAD_WEDGE_COMP12_FEM
+{
+ public:
+  typedef struct Wedge<12> cell_topology_type;
+
+  /**
+    \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
   */
-
-  namespace Impl {
-
-    /**
-      \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
-    */
-    class Basis_HGRAD_WEDGE_COMP12_FEM {
-    public:
-      typedef struct Wedge<12> cell_topology_type;
-
-      /**
-        \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
-      */
-      template<typename pointValueType>
-      KOKKOS_INLINE_FUNCTION
-      static ordinal_type
-      getLocalSubTriangle( const pointValueType r,
-                           const pointValueType s );
-
-      /**
-        \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
-      */
-      template<EOperator opType>
-      struct Serial {
-        template<typename outputViewType,
-                 typename inputViewType>
-        KOKKOS_INLINE_FUNCTION
-        static void
-        getValues(       outputViewType output,
-                   const inputViewType input );
-
-      };
-
-      template<typename ExecSpaceType,
-               typename outputValueValueType, class ...outputValueProperties,
-               typename inputPointValueType,  class ...inputPointProperties>
-      static void
-      getValues(       Kokkos::DynRankView<outputValueValueType,outputValueProperties...> outputValues,
-                 const Kokkos::DynRankView<inputPointValueType, inputPointProperties...>  inputPoints,
-                 const EOperator operatorType);
-
-      /**
-        \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
-      */
-      template<typename outputValueViewType,
-               typename inputPointViewType,
-               EOperator opType>
-      struct Functor {
-              outputValueViewType _outputValues;
-        const inputPointViewType  _inputPoints;
-
-        KOKKOS_INLINE_FUNCTION
-        Functor(       outputValueViewType outputValues_,
-                       inputPointViewType  inputPoints_ )
-          : _outputValues(outputValues_), _inputPoints(inputPoints_) {}
-
-        KOKKOS_INLINE_FUNCTION
-        void operator()(const ordinal_type pt) const {
-          switch (opType) {
-          case OPERATOR_VALUE : {
-            auto       output = Kokkos::subview( _outputValues, Kokkos::ALL(), pt );
-            const auto input  = Kokkos::subview( _inputPoints,                 pt, Kokkos::ALL() );
-            Serial<opType>::getValues( output, input );
-            break;
-          }
-          case OPERATOR_GRAD :
-          case OPERATOR_D2 :
-          case OPERATOR_MAX : {
-            auto       output = Kokkos::subview( _outputValues, Kokkos::ALL(), pt, Kokkos::ALL() );
-            const auto input  = Kokkos::subview( _inputPoints,                 pt, Kokkos::ALL() );
-            Serial<opType>::getValues( output, input );
-            break;
-          }
-          default: {
-            INTREPID2_TEST_FOR_ABORT( opType != OPERATOR_VALUE &&
-                                      opType != OPERATOR_GRAD &&
-                                      opType != OPERATOR_D2 &&
-                                      opType != OPERATOR_MAX,
-                                      ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::Serial::getValues) operator is not supported");
-          }
-          }
-        }
-      };
-
-
-    };
-  }
-  template<typename ExecSpaceType = void,
-           typename outputValueType = double,
-           typename pointValueType = double>
-  class Basis_HGRAD_WEDGE_COMP12_FEM : public Basis<ExecSpaceType,outputValueType,pointValueType> {
-  public:
-    typedef typename Basis<ExecSpaceType,outputValueType,pointValueType>::ordinal_type_array_1d_host ordinal_type_array_1d_host;
-    typedef typename Basis<ExecSpaceType,outputValueType,pointValueType>::ordinal_type_array_2d_host ordinal_type_array_2d_host;
-    typedef typename Basis<ExecSpaceType,outputValueType,pointValueType>::ordinal_type_array_3d_host ordinal_type_array_3d_host;
-
-    /** \brief  Constructor.
-     */
-    Basis_HGRAD_WEDGE_COMP12_FEM();
-
-    typedef typename Basis<ExecSpaceType,outputValueType,pointValueType>::outputViewType outputViewType;
-    typedef typename Basis<ExecSpaceType,outputValueType,pointValueType>::pointViewType  pointViewType;
-    typedef typename Basis<ExecSpaceType,outputValueType,pointValueType>::scalarViewType  scalarViewType;
-
-    using Basis<ExecSpaceType,outputValueType,pointValueType>::getValues;
-
-    virtual
-    void
-    getValues(       outputViewType outputValues,
-               const pointViewType  inputPoints,
-               const EOperator operatorType = OPERATOR_VALUE ) const {
-#ifdef HAVE_INTREPID2_DEBUG
-      // Verify arguments
-      Intrepid2::getValues_HGRAD_Args(outputValues,
-                                      inputPoints,
-                                      operatorType,
-                                      this->getBaseCellTopology(),
-                                      this->getCardinality() );
-#endif
-      Impl::Basis_HGRAD_WEDGE_COMP12_FEM::
-        getValues<ExecSpaceType>( outputValues,
-                                  inputPoints,
-                                  operatorType );
-    }
-
-    virtual
-    void
-    getDofCoords( scalarViewType dofCoords ) const {
-#ifdef HAVE_INTREPID2_DEBUG
-      // Verify rank of output array.
-      INTREPID2_TEST_FOR_EXCEPTION( dofCoords.rank() != 2, std::invalid_argument,
-                                    ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getDofCoords) rank = 2 required for dofCoords array");
-      // Verify 0th dimension of output array.
-      INTREPID2_TEST_FOR_EXCEPTION( static_cast<ordinal_type>(dofCoords.extent(0)) != this->getCardinality(), std::invalid_argument,
-                                    ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getDofCoords) mismatch in number of dof and 0th dimension of dofCoords array");
-      // Verify 1st dimension of output array.
-      INTREPID2_TEST_FOR_EXCEPTION( dofCoords.extent(1) != this->getBaseCellTopology().getDimension(), std::invalid_argument,
-                                    ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getDofCoords) incorrect reference cell (1st) dimension in dofCoords array");
-#endif
-      Kokkos::deep_copy(dofCoords, this->dofCoords_);
-    }
-
-    virtual
-    void
-    getDofCoeffs( scalarViewType dofCoeffs ) const {
-#ifdef HAVE_INTREPID2_DEBUG
-      // Verify rank of output array.
-      INTREPID2_TEST_FOR_EXCEPTION( dofCoeffs.rank() != 1, std::invalid_argument,
-                                    ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getdofCoeffs) rank = 1 required for dofCoeffs array");
-      // Verify 0th dimension of output array.
-      INTREPID2_TEST_FOR_EXCEPTION( static_cast<ordinal_type>(dofCoeffs.extent(0)) != this->getCardinality(), std::invalid_argument,
-                                    ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getdofCoeffs) mismatch in number of dof and 0th dimension of dofCoeffs array");
-#endif
-      Kokkos::deep_copy(dofCoeffs, 1.0);
-    }
-
-    virtual
-    const char*
-    getName() const {
-      return "Intrepid2_HGRAD_WEDGE_COMP12_FEM";
-    }
-
+  template <EOperator opType>
+  struct Serial
+  {
+    template <typename outputViewType, typename inputViewType>
+    KOKKOS_INLINE_FUNCTION static void
+    getValues(outputViewType output, inputViewType const input);
   };
-}// namespace Intrepid2
+
+  template <
+      typename ExecSpaceType,
+      typename outputValueValueType,
+      class... outputValueProperties,
+      typename inputPointValueType,
+      class... inputPointProperties>
+  static void
+  getValues(
+      Kokkos::DynRankView<outputValueValueType, outputValueProperties...>
+          outputValues,
+      Kokkos::DynRankView<inputPointValueType, inputPointProperties...> const
+                      inputPoints,
+      EOperator const operatorType);
+
+  /**
+    \brief See Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM
+  */
+  template <
+      typename outputValueViewType,
+      typename inputPointViewType,
+      EOperator opType>
+  struct Functor
+  {
+    outputValueViewType      _outputValues;
+    inputPointViewType const _inputPoints;
+
+    KOKKOS_INLINE_FUNCTION
+    Functor(outputValueViewType outputValues_, inputPointViewType inputPoints_)
+        : _outputValues(outputValues_), _inputPoints(inputPoints_)
+    {
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    void
+    operator()(const ordinal_type pt) const
+    {
+      switch (opType) {
+        case OPERATOR_VALUE: {
+          auto       output = Kokkos::subview(_outputValues, Kokkos::ALL(), pt);
+          const auto input  = Kokkos::subview(_inputPoints, pt, Kokkos::ALL());
+          Serial<opType>::getValues(output, input);
+          break;
+        }
+        case OPERATOR_GRAD:
+        case OPERATOR_D2:
+        case OPERATOR_MAX: {
+          auto output =
+              Kokkos::subview(_outputValues, Kokkos::ALL(), pt, Kokkos::ALL());
+          const auto input = Kokkos::subview(_inputPoints, pt, Kokkos::ALL());
+          Serial<opType>::getValues(output, input);
+          break;
+        }
+        default: {
+          INTREPID2_TEST_FOR_ABORT(
+              opType != OPERATOR_VALUE && opType != OPERATOR_GRAD &&
+                  opType != OPERATOR_D2 && opType != OPERATOR_MAX,
+              ">>> ERROR: "
+              "(Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::Serial::getValues) "
+              "operator is not supported");
+        }
+      }
+    }
+  };
+};
+}  // namespace Impl
+template <
+    typename ExecSpaceType   = void,
+    typename outputValueType = double,
+    typename pointValueType  = double>
+class Basis_HGRAD_WEDGE_COMP12_FEM
+    : public Basis<ExecSpaceType, outputValueType, pointValueType>
+{
+ public:
+  typedef typename Basis<ExecSpaceType, outputValueType, pointValueType>::
+      ordinal_type_array_1d_host ordinal_type_array_1d_host;
+  typedef typename Basis<ExecSpaceType, outputValueType, pointValueType>::
+      ordinal_type_array_2d_host ordinal_type_array_2d_host;
+  typedef typename Basis<ExecSpaceType, outputValueType, pointValueType>::
+      ordinal_type_array_3d_host ordinal_type_array_3d_host;
+
+  /** \brief  Constructor.
+   */
+  Basis_HGRAD_WEDGE_COMP12_FEM();
+
+  typedef typename Basis<ExecSpaceType, outputValueType, pointValueType>::
+      outputViewType outputViewType;
+  typedef typename Basis<ExecSpaceType, outputValueType, pointValueType>::
+      pointViewType pointViewType;
+  typedef typename Basis<ExecSpaceType, outputValueType, pointValueType>::
+      scalarViewType scalarViewType;
+
+  using Basis<ExecSpaceType, outputValueType, pointValueType>::getValues;
+
+  virtual void
+  getValues(
+      outputViewType      outputValues,
+      const pointViewType inputPoints,
+      const EOperator     operatorType = OPERATOR_VALUE) const
+  {
+#ifdef HAVE_INTREPID2_DEBUG
+    // Verify arguments
+    Intrepid2::getValues_HGRAD_Args(
+        outputValues,
+        inputPoints,
+        operatorType,
+        this->getBaseCellTopology(),
+        this->getCardinality());
+#endif
+    Impl::Basis_HGRAD_WEDGE_COMP12_FEM::getValues<ExecSpaceType>(
+        outputValues, inputPoints, operatorType);
+  }
+
+  virtual void
+  getDofCoords(scalarViewType dofCoords) const
+  {
+#ifdef HAVE_INTREPID2_DEBUG
+    // Verify rank of output array.
+    INTREPID2_TEST_FOR_EXCEPTION(
+        dofCoords.rank() != 2,
+        std::invalid_argument,
+        ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getDofCoords) "
+        "rank = 2 required for dofCoords array");
+    // Verify 0th dimension of output array.
+    INTREPID2_TEST_FOR_EXCEPTION(
+        static_cast<ordinal_type>(dofCoords.extent(0)) !=
+            this->getCardinality(),
+        std::invalid_argument,
+        ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getDofCoords) "
+        "mismatch in number of dof and 0th dimension of dofCoords array");
+    // Verify 1st dimension of output array.
+    INTREPID2_TEST_FOR_EXCEPTION(
+        dofCoords.extent(1) != this->getBaseCellTopology().getDimension(),
+        std::invalid_argument,
+        ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getDofCoords) "
+        "incorrect reference cell (1st) dimension in dofCoords array");
+#endif
+    Kokkos::deep_copy(dofCoords, this->dofCoords_);
+  }
+
+  virtual void
+  getDofCoeffs(scalarViewType dofCoeffs) const
+  {
+#ifdef HAVE_INTREPID2_DEBUG
+    // Verify rank of output array.
+    INTREPID2_TEST_FOR_EXCEPTION(
+        dofCoeffs.rank() != 1,
+        std::invalid_argument,
+        ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getdofCoeffs) "
+        "rank = 1 required for dofCoeffs array");
+    // Verify 0th dimension of output array.
+    INTREPID2_TEST_FOR_EXCEPTION(
+        static_cast<ordinal_type>(dofCoeffs.extent(0)) !=
+            this->getCardinality(),
+        std::invalid_argument,
+        ">>> ERROR: (Intrepid2::Basis_HGRAD_WEDGE_COMP12_FEM::getdofCoeffs) "
+        "mismatch in number of dof and 0th dimension of dofCoeffs array");
+#endif
+    Kokkos::deep_copy(dofCoeffs, 1.0);
+  }
+
+  virtual const char*
+  getName() const
+  {
+    return "Intrepid2_HGRAD_WEDGE_COMP12_FEM";
+  }
+
+  virtual
+  ~Basis_HGRAD_WEDGE_COMP12_FEM()
+  {
+    return;
+  }
+};
+}  // namespace Intrepid2
 
 #include "Intrepid2_HGRAD_WEDGE_COMP12_FEMDef.hpp"
 
