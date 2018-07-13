@@ -2,7 +2,7 @@
 
 
 // the system defined random number generator
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__CYGWIN__)
 # define SRANDOM(i) srand(i)
 # define RANDOM() rand()
 #else

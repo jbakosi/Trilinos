@@ -2,6 +2,7 @@
 #include "uns_inline_decomp.h"
 #include "inline_mesh_desc.h"
 #include "legacy_inline_mesh_desc.h"
+#include "pamgen_fudges.h"
 
 namespace PAMGEN_NEVADA {
 

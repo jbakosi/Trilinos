@@ -458,14 +458,22 @@ double Tester::execute(Value** args)
 double Bessel_J0::execute(Value** args)
 /*****************************************************************************/
 {
+#ifdef __CYGWIN__
+  return 0;
+#else
   return j0(args[0]->getValue());
+#endif
 }
 
 /*****************************************************************************/
 double Bessel_J1::execute(Value** args)
 /*****************************************************************************/
 {
+#ifdef __CYGWIN__
+  return 0;
+#else
   return j1(args[0]->getValue());
+#endif
 }
 
 

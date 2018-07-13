@@ -2,6 +2,11 @@
 
 #include "pamgen_code_types.h"
 
+#ifdef __CYGWIN__
+#define M_PI            3.14159265358979323846
+#endif
+
+
 namespace PAMGEN_NEVADA {
 
 // these are defined in fudges.C
