@@ -306,7 +306,19 @@ main (int argc, char *argv[])
       {
         TEUCHOS_FUNC_TIME_MONITOR_DIFF("Total Preconditioner Setup", total_prec);
 
-        if (prec_type == "MueLu") {
+        if (prec_type == "MueLu") {	  	  
+#ifdef HAVE_TRILINOSCOUPLINGS_AVATAR
+	  if (inputList.isSublist("Avatar")) {
+	    ParameterList avatarParams  = inputList.sublist("Avatar");
+	    ParameterList & mueluParams = inputList.sublist("MueLu");
+	    MueLu::AvatarInterface avatar(A->getComm(),avatarParams);
+	    avatar->Setup();
+	    avatar->SetMueLuParameters(problemStatistics,mueLuParams,true);
+	    avatar->Cleanup();
+	  }
+#endif
+
+	  
 #ifdef HAVE_TRILINOSCOUPLINGS_MUELU
 	  for(int i=0; i<numMueluRebuilds+1; i++) {
 	    if (inputList.isSublist("MueLu")) {
